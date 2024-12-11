@@ -44,6 +44,23 @@ pub fn open_file() -> Result<File, Box<dyn Error>> {
 
     path.push("todo.toml");
 
+    // Check if file is empty or doesn't exist and create it / add default data
+    let metadata = path.metadata()?;
+    let is_empty: bool = metadata.len() == 0;
+    println!("{}", is_empty);
+
+    if !path.exists() || is_empty  {
+        let mut file_creator = File::create(&path)?;
+        let mut default = toml::to_string(&TomlData {
+            config: Config {
+                id: 0,
+            },
+            todos: BTreeMap::new()
+        })?;
+        file_creator.write_all(default.as_bytes())?;
+
+    }
+
     Ok(OpenOptions::new()
         .read(true)
         .write(true)
