@@ -63,9 +63,31 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         SubCommand::Edit => {unimplemented!()}
         SubCommand::Rm => {unimplemented!()}
-        SubCommand::Done => {unimplemented!()}
+        SubCommand::Done => {
+            let todo_title_id: String;
+            if args.title.is_none() {
+                let mut counter = 0;
+                for todo in todos {
+                    todo.1.display_tasks(todo.0);
+                    counter += 1;
+                }
+                loop {
+                    todo_title_id = data::get_input("Select a task: ")?;
+
+            }
+        } else {
+                for todo in todos.iter() {
+
+                }
+            }
+
+        }
         SubCommand::ToDo => {unimplemented!()}
-        SubCommand::Ls => {unimplemented!()}
+        SubCommand::Ls => {
+            for todo in todos {
+                println!("{}", todo.1);
+            }
+        }
     }
     Ok(())
 }

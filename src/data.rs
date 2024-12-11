@@ -1,12 +1,13 @@
 use crate::data::Priority::{High, Low, Medium, VeryHigh, VeryLow};
 use chrono::Local;
+use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 use std::{
     error::Error,
     fmt::{Debug, Formatter},
     io::{self, Write},
 };
-use clap::ValueEnum;
 
 #[derive(Deserialize, Serialize)]
 pub struct ToDo {
@@ -17,7 +18,7 @@ pub struct ToDo {
     priority: Priority,
 }
 
-fn get_input(text: &str) -> Result<String, Box<dyn Error>> {
+pub fn get_input(text: &str) -> Result<String, Box<dyn Error>> {
     let mut input = String::new();
     print!("{text}");
     io::stdout().flush()?;
@@ -30,7 +31,7 @@ impl ToDo {
         mut title: Option<String>,
         mut description: Option<String>,
         mut priority: Option<Priority>,
-        id: u64
+        id: u64,
     ) -> Result<(ToDo, u64), Box<dyn Error>> {
         // Set title, description, and priority if they don't exist, get input and strip whitespace
         if title.is_none() {
@@ -61,15 +62,19 @@ impl ToDo {
                 input_needed = false;
             }
         }
-        Ok((ToDo {
-            title: title.unwrap(),
-            description: description.unwrap(),
-            status: false,
-            time: Local::now()
-                .format("%Y-%m-%d %H:%M")
-                .to_string(),
-            priority: priority.unwrap(),
-        }, id + 1))
+        Ok((
+            ToDo {
+                title: title.unwrap(),
+                description: description.unwrap(),
+                status: false,
+                time: Local::now().format("%Y-%m-%d %H:%M").to_string(),
+                priority: priority.unwrap(),
+            },
+            id + 1,
+        ))
+    }
+    pub fn display_tasks(&self, id: String) {
+        println!("({}) {}", id, self.title);
     }
 }
 
@@ -79,6 +84,32 @@ impl Debug for ToDo {
             f,
             "Title: {}, Description: {}, Priority: {:?}, time: {}, Status: {}",
             self.title, self.description, self.priority, self.time, self.status,
+        )
+    }
+}
+
+impl Display for ToDo {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Title: {}\nPriority: {}\nTime: {}\nCompleted: {}\n   - {}",
+            self.title, self.priority, self.time, self.status, self.description
+        )
+    }
+}
+
+impl Display for Priority {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                VeryHigh => "Very high",
+                High => "High",
+                Medium => "Medium",
+                Low => "Low",
+                VeryLow => "Very low",
+            }
         )
     }
 }
