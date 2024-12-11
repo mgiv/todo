@@ -1,7 +1,7 @@
 use crate::{data::Config, ToDo};
 use dirs::cache_dir;
 use std::collections::BTreeMap;
-use toml;
+use toml::from_str;
 
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
@@ -11,11 +11,11 @@ use std::{
     path::PathBuf,
 };
 
-pub fn read_file() -> Result<(BTreeMap<String, ToDo>, u64), Box<dyn Error>> {
-    let mut file = open_file()?;
+pub fn read() -> Result<(BTreeMap<String, ToDo>, u64), Box<dyn Error>> {
+    let mut file = open()?;
     let mut string = String::new();
     file.read_to_string(&mut string)?;
-    let toml_data: TomlData = toml::from_str(&string)?;
+    let toml_data: TomlData = from_str(&string)?;
 
     Ok((
         toml_data
@@ -24,16 +24,16 @@ pub fn read_file() -> Result<(BTreeMap<String, ToDo>, u64), Box<dyn Error>> {
     ))
 }
 
-pub fn write_file(todos: BTreeMap<String, ToDo>, config: Config) -> Result<(), Box<dyn Error>> {
+pub fn write(todos: BTreeMap<String, ToDo>, config: Config) -> Result<(), Box<dyn Error>> {
     let toml = TomlData { config, todos };
     let toml_string = toml::to_string(&toml)?;
-    let mut file = open_file()?;
-    file.write(toml_string.as_bytes())?;
+    let mut file = open()?;
+    file.write_all(toml_string.as_bytes())?;
     Ok(())
 }
 
 
-pub fn open_file() -> Result<File, Box<dyn Error>> {
+pub fn open() -> Result<File, Box<dyn Error>> {
     let mut path: PathBuf = match cache_dir() {
         Some(p) => p,
         None => return Err("Unable to access cache directory".into()),
@@ -53,7 +53,6 @@ pub fn open_file() -> Result<File, Box<dyn Error>> {
     if path.exists() {
         let metadata = path.metadata()?;
         is_empty = metadata.len() == 0;
-        println!("{}", is_empty);
     }
     if !path.exists() || is_empty {
         let mut file_creator = File::create(&path)?;
@@ -68,8 +67,8 @@ pub fn open_file() -> Result<File, Box<dyn Error>> {
         .read(true)
         .write(true)
         .create(true)
+        .truncate(false)
         .open(path)?)
-        .truncate(true)
 }
 
 #[derive(Serialize, Deserialize, Debug)]

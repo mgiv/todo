@@ -14,8 +14,8 @@ use todo::{
     data::{Config, ToDo},
 };
 
-use crate::args::SubCommand::*;
-use crate::file::{read_file, write_file};
+use crate::args::SubCommand;
+use crate::file::{read, write};
 use clap::Parser;
 use dirs::cache_dir;
 use std::error::Error;
@@ -26,7 +26,7 @@ mod data;
 mod file;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let (mut todos, mut id) = read_file()?;
+    let (mut todos, mut id) = read()?;
 
     // Uses clap in args.rs
     let args = Args::parse();
@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let todo: ToDo;
 
     match args.subcommand {
-        Clean => {
+        SubCommand::Clean => {
             let mut input = String::new();
             print!("Delete todo file? This will delete all todos (y/N): ");
             std::io::stdout().flush()?;
@@ -51,7 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             return Ok(());
         }
-        Add => {
+        SubCommand::Add => {
             (todo, id) = ToDo::create(args.title, args.description, args.priority, id)?;
             todos.insert(id.to_string(), todo);
             let todos_valid = todos
@@ -59,13 +59,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .map(|(k, v)| (k.to_string(), v))
                 .collect::<BTreeMap<String, ToDo>>();
 
-            write_file(todos_valid, Config { id })?;
+            write(todos_valid, Config { id })?;
         }
-        Edit => {}
-        Rm => {}
-        Done => {}
-        ToDo => {}
-        Ls => {}
+        SubCommand::Edit => {unimplemented!()}
+        SubCommand::Rm => {unimplemented!()}
+        SubCommand::Done => {unimplemented!()}
+        SubCommand::ToDo => {unimplemented!()}
+        SubCommand::Ls => {unimplemented!()}
     }
     Ok(())
 }

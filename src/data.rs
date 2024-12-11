@@ -1,4 +1,4 @@
-use crate::data::Priority::*;
+use crate::data::Priority::{High, Low, Medium, VeryHigh, VeryLow};
 use chrono::Local;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -19,7 +19,7 @@ pub struct ToDo {
 
 fn get_input(text: &str) -> Result<String, Box<dyn Error>> {
     let mut input = String::new();
-    print!("{}", text);
+    print!("{text}");
     io::stdout().flush()?;
     io::stdin().read_line(&mut input)?;
     Ok(input.trim().to_string())
