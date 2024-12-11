@@ -57,7 +57,7 @@ pub fn open_file() -> Result<File, Box<dyn Error>> {
     }
     if !path.exists() || is_empty {
         let mut file_creator = File::create(&path)?;
-        let mut default = toml::to_string(&TomlData {
+        let default = toml::to_string(&TomlData {
             config: Config { id: 0 },
             todos: BTreeMap::new(),
         })?;
@@ -69,6 +69,7 @@ pub fn open_file() -> Result<File, Box<dyn Error>> {
         .write(true)
         .create(true)
         .open(path)?)
+        .truncate(true)
 }
 
 #[derive(Serialize, Deserialize, Debug)]

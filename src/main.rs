@@ -20,7 +20,6 @@ use clap::Parser;
 use dirs::cache_dir;
 use std::error::Error;
 use std::io::Write;
-use std::path::PathBuf;
 
 mod args;
 mod data;
@@ -32,7 +31,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Uses clap in args.rs
     let args = Args::parse();
 
-    let mut todo: ToDo;
+    let todo: ToDo;
 
     match args.subcommand {
         Clean => {
@@ -41,26 +40,26 @@ fn main() -> Result<(), Box<dyn Error>> {
             std::io::stdout().flush()?;
             std::io::stdin().read_line(&mut input)?;
             if input.trim().to_lowercase() == "y" {
-                let mut path: PathBuf = match cache_dir() {
-                    Some(p) => p,
-                    None => return Err("Unable to access cache directory".into()),
-                };
-                path.push("todo");
-                path.push("todo.toml");
-                std::fs::remove_file(path)?;
+               let cache_path = if let Some(p) = cache_dir() {
+                p.join("todo").join("todo.toml")
+               } else {
+                   return Err("Unable to access cache directory.".into());
+               };
+
+                std::fs::remove_file(cache_path)?;
                 println!("All todos deleted");
             }
             return Ok(());
         }
         Add => {
-                (todo, id) = ToDo::create(args.title, args.description, args.priority, id)?;
-                todos.insert(id.to_string(), todo);
-                let todos_valid = todos
-                    .into_iter()
-                    .map(|(k, v)| (k.to_string(), v))
-                    .collect::<BTreeMap<String, ToDo>>();
+            (todo, id) = ToDo::create(args.title, args.description, args.priority, id)?;
+            todos.insert(id.to_string(), todo);
+            let todos_valid = todos
+                .into_iter()
+                .map(|(k, v)| (k.to_string(), v))
+                .collect::<BTreeMap<String, ToDo>>();
 
-                write_file(todos_valid, Config { id })?;
+            write_file(todos_valid, Config { id })?;
         }
         Edit => {}
         Rm => {}

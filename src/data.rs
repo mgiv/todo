@@ -1,5 +1,5 @@
 use crate::data::Priority::*;
-use chrono::{prelude::*, DurationRound, Local};
+use chrono::Local;
 use serde::{Deserialize, Serialize};
 use std::{
     error::Error,
@@ -30,7 +30,7 @@ impl ToDo {
         mut title: Option<String>,
         mut description: Option<String>,
         mut priority: Option<Priority>,
-        mut id: u64
+        id: u64
     ) -> Result<(ToDo, u64), Box<dyn Error>> {
         // Set title, description, and priority if they don't exist, get input and strip whitespace
         if title.is_none() {
