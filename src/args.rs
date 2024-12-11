@@ -13,14 +13,12 @@ pub struct Args {
     pub subcommand: SubCommand,
 
     /// Title of task
-    #[clap(short, long)]
     pub title: Option<String>,
 
     /// Description (optional)
-    #[clap(short, long)]
     pub description: Option<String>,
 
-    #[clap(value_enum, short, long)]
+    #[clap(value_enum)]
     pub priority: Option<Priority>
 }
 
