@@ -1,4 +1,4 @@
-use crate::{data::Config, Todo};
+use crate::Todo;
 use dirs::cache_dir;
 use std::collections::BTreeMap;
 use toml::from_str;
@@ -10,6 +10,7 @@ use std::{
     fs::{self, File, OpenOptions},
     path::PathBuf,
 };
+use crate::utils::Config;
 
 pub fn read() -> Result<(BTreeMap<String, Todo>, u64), Box<dyn Error>> {
     let mut file = open()?;

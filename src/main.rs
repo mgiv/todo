@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 
 use todo::{
     args::{Args, SubCommand},
-    data::{Config, Todo, mark_task},
+    data::Todo,
     file::{read, write},
 };
 
@@ -11,10 +11,15 @@ use clap::Parser;
 use dirs::cache_dir;
 use std::error::Error;
 use std::io::Write;
+use tasks::mark_task;
+use utils::Config;
 
 mod args;
 mod data;
 mod file;
+mod tasks;
+mod utils;
+mod traits;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let (mut todos, mut id) = read()?;
