@@ -2,6 +2,7 @@ use crate::args::Args;
 use crate::data::Priority::{High, Low, Medium, VeryHigh, VeryLow};
 use chrono::Local;
 use clap::ValueEnum;
+use crossterm::style::Stylize;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::Display;
@@ -74,14 +75,13 @@ impl Todo {
             id + 1,
         ))
     }
-    pub fn display_tasks(&self, id: &str, strikethrough: bool) -> Result<(), Box<dyn Error>> {
+    pub fn display_tasks(&self, id: &str, strikethrough: bool) {
         let status: &str = if self.status { "Completed" } else { "Todo" };
         if strikethrough {
             println!("\x1b[9m({}) {} ({})\x1b[0m", id, self.title, status);
         } else {
             println!("({}) {} ({})", id, self.title, status);
         }
-        Ok(())
     }
 }
 
@@ -97,11 +97,24 @@ impl Debug for Todo {
 
 impl Display for Todo {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let status_message: &str = if self.status { "Completed" } else { "Todo" };
+        let status_message = if self.status {
+            "Completed".green().to_string()
+        } else {
+            "Todo".red().to_string()
+        };
         write!(
             f,
-            "Title: {}\nPriority: {}\nTime: {}\nStatus: {}\n   - {}",
-            self.title, self.priority, self.time, status_message, self.description
+            "{} {}\n{} {}\n{} {}\n{} {}\n   - {}\n{}",
+            "Title:".underlined().bold(),
+            self.title,
+            "Priority:".underlined().bold(),
+            self.priority,
+            "Time:".underlined().bold(),
+            self.time.clone().bold(),
+            "Status:".underlined().bold(),
+            status_message,
+            self.description,
+            "-".repeat(30).bold(),
         )
     }
 }
@@ -112,11 +125,11 @@ impl Display for Priority {
             f,
             "{}",
             match self {
-                VeryHigh => "Very high",
-                High => "High",
-                Medium => "Medium",
-                Low => "Low",
-                VeryLow => "Very low",
+                VeryHigh => "Very high".red(),
+                High => "High".dark_yellow(),
+                Medium => "Medium".yellow(),
+                Low => "Low".green(),
+                VeryLow => "Very low".blue(),
             }
         )
     }
@@ -145,10 +158,10 @@ pub fn mark_task(
     if args.title.is_none() {
         loop {
             for todo in &mut *todos {
-                if todo.1.status != completed {
-                    todo.1.display_tasks(todo.0, false)?;
+                if todo.1.status == completed {
+                    todo.1.display_tasks(todo.0, true);
                 } else {
-                    todo.1.display_tasks(todo.0, true)?;
+                    todo.1.display_tasks(todo.0, false);
                 }
             }
             todo_title_id = get_input("Select a task (by id or title): ")?;
