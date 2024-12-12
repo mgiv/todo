@@ -3,8 +3,6 @@ use clap::{Parser, ValueEnum};
 use SubCommand::*;
 use crate::data::Priority;
 
-// Main arg struct (we use an enum for which subcommand to do)
-// Title and description are optional because they can be updated from data::to-do::create
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = "Todo list app", arg_required_else_help = true)]
 pub struct Args {
@@ -22,7 +20,6 @@ pub struct Args {
     pub priority: Option<Priority>
 }
 
-// We can use an enum to add different subcommands
 #[derive(ValueEnum, Debug, Clone, PartialEq)]
 pub enum SubCommand {
     /// List tasks
@@ -35,7 +32,7 @@ pub enum SubCommand {
     Done,
 
     /// Leave a completed task incomplete
-    ToDo,
+    Todo,
 
     /// Edit a task
     Edit,

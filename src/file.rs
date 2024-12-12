@@ -1,4 +1,4 @@
-use crate::{data::Config, ToDo};
+use crate::{data::Config, Todo};
 use dirs::cache_dir;
 use std::collections::BTreeMap;
 use toml::from_str;
@@ -11,7 +11,7 @@ use std::{
     path::PathBuf,
 };
 
-pub fn read() -> Result<(BTreeMap<String, ToDo>, u64), Box<dyn Error>> {
+pub fn read() -> Result<(BTreeMap<String, Todo>, u64), Box<dyn Error>> {
     let mut file = open()?;
     let mut string = String::new();
     file.read_to_string(&mut string)?;
@@ -24,7 +24,7 @@ pub fn read() -> Result<(BTreeMap<String, ToDo>, u64), Box<dyn Error>> {
     ))
 }
 
-pub fn write(todos: BTreeMap<String, ToDo>, config: Config) -> Result<(), Box<dyn Error>> {
+pub fn write(todos: BTreeMap<String, Todo>, config: Config) -> Result<(), Box<dyn Error>> {
     let toml = TomlData { config, todos };
     let toml_string = toml::to_string(&toml)?;
     let mut file = open()?;
@@ -39,7 +39,6 @@ pub fn open() -> Result<File, Box<dyn Error>> {
         None => return Err("Unable to access cache directory".into()),
     };
 
-    // Create parent dir if it doesn't exist
     path.push("todo");
 
     if !path.exists() {
@@ -49,7 +48,6 @@ pub fn open() -> Result<File, Box<dyn Error>> {
     path.push("todo.toml");
 
     let mut is_empty: bool = false;
-    // Check if file is empty or doesn't exist and create it / add default data
     if path.exists() {
         let metadata = path.metadata()?;
         is_empty = metadata.len() == 0;
@@ -75,5 +73,5 @@ pub fn open() -> Result<File, Box<dyn Error>> {
 struct TomlData {
     config: Config,
     #[serde(flatten)]
-    todos: BTreeMap<String, ToDo>,
+    todos: BTreeMap<String, Todo>,
 }
