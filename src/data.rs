@@ -2,6 +2,7 @@ use crate::args::Args;
 use crate::data::Priority::{High, Low, Medium, VeryHigh, VeryLow};
 use chrono::Local;
 use clap::ValueEnum;
+use crossterm::style::Color;
 use crossterm::style::Stylize;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -75,10 +76,19 @@ impl Todo {
             id + 1,
         ))
     }
-    pub fn display_tasks(&self, id: &str, strikethrough: bool) {
+    pub fn display_tasks(&self, id: &str, highlight: bool) {
         let status: &str = if self.status { "Completed" } else { "Todo" };
-        if strikethrough {
-            println!("\x1b[9m({}) {} ({})\x1b[0m", id, self.title, status);
+        if highlight {
+            println!(
+                "{}",
+                format!("({}) {} ({})", id, self.title, status)
+                    .bold()
+                    .with(Color::Rgb {
+                        r: 255,
+                        g: 255,
+                        b: 255
+                    })
+            );
         } else {
             println!("({}) {} ({})", id, self.title, status);
         }
@@ -164,10 +174,26 @@ pub fn mark_task(
                     todo.1.display_tasks(todo.0, false);
                 }
             }
-            todo_title_id = get_input("Select a task (by id or title): ")?;
+            let completed_todo = if completed {
+                "n Uncompleted"
+            } else {
+                "Completed"
+            };
+            todo_title_id = get_input(
+                format!("Select a{completed_todo} task (by id or title): ")
+                    .bold()
+                    .to_string()
+                    .as_str(),
+            )?;
             for (id, todo) in todos.iter_mut() {
                 if todo_title_id == *id || todo_title_id == todo.title {
                     if todo.status == completed {
+                        if todo.status {
+                            println!("Select a task that's still todo");
+                        } else {
+                            println!("Select a task that's completed");
+                        }
+
                         continue;
                     }
                     todo.status = completed;
