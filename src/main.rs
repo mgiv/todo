@@ -1,21 +1,12 @@
-// To-do list app
-//
-// Comments shall refer to to-do as to-do as my editor turns comments containing to-do (without
-// hyphen) green
-//
-// Code related to clap is in args.rs, anything related to the structure
-// is in data.rs, and everything related to writing to the file is in file.rs
-
 use crate as todo;
 use std::collections::BTreeMap;
 
 use todo::{
-    args::Args,
-    data::{Config, ToDo},
+    args::{Args, SubCommand},
+    data::{Config, Todo, mark_task},
+    file::{read, write},
 };
 
-use crate::args::SubCommand;
-use crate::file::{read, write};
 use clap::Parser;
 use dirs::cache_dir;
 use std::error::Error;
@@ -28,10 +19,9 @@ mod file;
 fn main() -> Result<(), Box<dyn Error>> {
     let (mut todos, mut id) = read()?;
 
-    // Uses clap in args.rs
     let args = Args::parse();
 
-    let todo: ToDo;
+    let todo: Todo;
 
     match args.subcommand {
         SubCommand::Clean => {
@@ -40,11 +30,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             std::io::stdout().flush()?;
             std::io::stdin().read_line(&mut input)?;
             if input.trim().to_lowercase() == "y" {
-               let cache_path = if let Some(p) = cache_dir() {
-                p.join("todo").join("todo.toml")
-               } else {
-                   return Err("Unable to access cache directory.".into());
-               };
+                let cache_path = if let Some(p) = cache_dir() {
+                    p.join("todo").join("todo.toml")
+                } else {
+                    return Err("Unable to access cache directory.".into());
+                };
 
                 std::fs::remove_file(cache_path)?;
                 println!("All todos deleted");
@@ -52,42 +42,43 @@ fn main() -> Result<(), Box<dyn Error>> {
             return Ok(());
         }
         SubCommand::Add => {
-            (todo, id) = ToDo::create(args.title, args.description, args.priority, id)?;
+            (todo, id) = Todo::create(args.title, args.description, args.priority, id)?;
             todos.insert(id.to_string(), todo);
             let todos_valid = todos
                 .into_iter()
                 .map(|(k, v)| (k.to_string(), v))
-                .collect::<BTreeMap<String, ToDo>>();
+                .collect::<BTreeMap<String, Todo>>();
 
             write(todos_valid, Config { id })?;
         }
-        SubCommand::Edit => {unimplemented!()}
-        SubCommand::Rm => {unimplemented!()}
-        SubCommand::Done => {
-            let todo_title_id: String;
-            if args.title.is_none() {
-                let mut counter = 0;
-                for todo in todos {
-                    todo.1.display_tasks(todo.0);
-                    counter += 1;
-                }
-                loop {
-                    todo_title_id = data::get_input("Select a task: ")?;
-
-            }
-        } else {
-                for todo in todos.iter() {
-
-                }
-            }
-
+        SubCommand::Edit => {
+            unimplemented!()
         }
-        SubCommand::ToDo => {unimplemented!()}
+        SubCommand::Rm => {
+            unimplemented!()
+        }
+        SubCommand::Done => {
+            mark_task(true, &mut todos, &args)?;
+            write(todos, Config { id })?;
+        }
+        SubCommand::Todo => {
+            mark_task(false, &mut todos, &args)?;
+            write(todos, Config { id })?;
+        }
         SubCommand::Ls => {
-            for todo in todos {
-                println!("{}", todo.1);
+            if args.title.is_none() {
+                for todo in &todos {
+                    println!("{}", todo.1);
+                }
+            } else {
+                for todo in todos.values() {
+                    if args.title.as_ref() == Some(&todo.title) {
+                        println!("{todo}");
+                    }
+                }
             }
         }
     }
     Ok(())
 }
+

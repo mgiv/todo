@@ -1,7 +1,9 @@
+use crate::args::Args;
 use crate::data::Priority::{High, Low, Medium, VeryHigh, VeryLow};
 use chrono::Local;
 use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::{
     error::Error,
@@ -10,12 +12,12 @@ use std::{
 };
 
 #[derive(Deserialize, Serialize)]
-pub struct ToDo {
-    title: String,
-    description: String,
-    status: bool,
-    time: String,
-    priority: Priority,
+pub struct Todo {
+    pub title: String,
+    pub description: String,
+    pub status: bool,
+    pub time: String,
+    pub priority: Priority,
 }
 
 pub fn get_input(text: &str) -> Result<String, Box<dyn Error>> {
@@ -26,14 +28,13 @@ pub fn get_input(text: &str) -> Result<String, Box<dyn Error>> {
     Ok(input.trim().to_string())
 }
 
-impl ToDo {
+impl Todo {
     pub fn create(
         mut title: Option<String>,
         mut description: Option<String>,
         mut priority: Option<Priority>,
         id: u64,
-    ) -> Result<(ToDo, u64), Box<dyn Error>> {
-        // Set title, description, and priority if they don't exist, get input and strip whitespace
+    ) -> Result<(Todo, u64), Box<dyn Error>> {
         if title.is_none() {
             title = Some(get_input("Enter a title: ")?);
         }
@@ -63,7 +64,7 @@ impl ToDo {
             }
         }
         Ok((
-            ToDo {
+            Todo {
                 title: title.unwrap(),
                 description: description.unwrap(),
                 status: false,
@@ -73,12 +74,18 @@ impl ToDo {
             id + 1,
         ))
     }
-    pub fn display_tasks(&self, id: String) {
-        println!("({}) {}", id, self.title);
+    pub fn display_tasks(&self, id: &str, strikethrough: bool) -> Result<(), Box<dyn Error>> {
+        let status: &str = if self.status { "Completed" } else { "Todo" };
+        if strikethrough {
+            println!("\x1b[9m({}) {} ({})\x1b[0m", id, self.title, status);
+        } else {
+            println!("({}) {} ({})", id, self.title, status);
+        }
+        Ok(())
     }
 }
 
-impl Debug for ToDo {
+impl Debug for Todo {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -88,12 +95,13 @@ impl Debug for ToDo {
     }
 }
 
-impl Display for ToDo {
+impl Display for Todo {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let status_message: &str = if self.status { "Completed" } else { "Todo" };
         write!(
             f,
-            "Title: {}\nPriority: {}\nTime: {}\nCompleted: {}\n   - {}",
-            self.title, self.priority, self.time, self.status, self.description
+            "Title: {}\nPriority: {}\nTime: {}\nStatus: {}\n   - {}",
+            self.title, self.priority, self.time, status_message, self.description
         )
     }
 }
@@ -114,7 +122,6 @@ impl Display for Priority {
     }
 }
 
-// Can be set from args or also from To-Do::create
 #[derive(ValueEnum, Clone, Debug, Deserialize, Serialize)]
 pub enum Priority {
     VeryHigh,
@@ -127,4 +134,55 @@ pub enum Priority {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Config {
     pub id: u64,
+}
+
+pub fn mark_task(
+    completed: bool,
+    todos: &mut BTreeMap<String, Todo>,
+    args: &Args,
+) -> Result<(), Box<dyn Error>> {
+    let mut todo_title_id: String;
+    if args.title.is_none() {
+        loop {
+            for todo in &mut *todos {
+                if todo.1.status != completed {
+                    todo.1.display_tasks(todo.0, false)?;
+                } else {
+                    todo.1.display_tasks(todo.0, true)?;
+                }
+            }
+            todo_title_id = get_input("Select a task (by id or title): ")?;
+            for (id, todo) in todos.iter_mut() {
+                if todo_title_id == *id || todo_title_id == todo.title {
+                    if todo.status == completed {
+                        continue;
+                    }
+                    todo.status = completed;
+                    if completed {
+                        println!("Task \"{}\" completed", todo.title);
+                    } else {
+                        println!("Task \"{}\" todo", todo.title);
+                    }
+                    return Ok(());
+                }
+            }
+        }
+    } else {
+        let mut found = false;
+        for todo in todos.values_mut() {
+            if Some(&todo.title) == args.title.as_ref() {
+                found = true;
+                todo.status = completed;
+                if completed {
+                    println!("Task \"{}\" completed", todo.title);
+                } else {
+                    println!("Task \"{}\" todo", todo.title);
+                }
+            }
+        }
+        if !found {
+            println!("Task not found: {}", args.title.as_ref().unwrap());
+        }
+        Ok(())
+    }
 }
