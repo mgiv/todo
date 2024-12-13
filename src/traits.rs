@@ -1,7 +1,7 @@
-use std::fmt::{Debug, Display, Formatter};
-use crossterm::style::Stylize;
-use crate::data::{Priority, Todo};
 use crate::data::Priority::{High, Low, Medium, VeryHigh, VeryLow};
+use crate::data::{Priority, Todo};
+use crossterm::style::Stylize;
+use std::fmt::{Debug, Display, Formatter};
 
 impl Debug for Todo {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {

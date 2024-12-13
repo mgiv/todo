@@ -3,6 +3,7 @@ use dirs::cache_dir;
 use std::collections::BTreeMap;
 use toml::from_str;
 
+use crate::utils::Config;
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 use std::{
@@ -10,7 +11,6 @@ use std::{
     fs::{self, File, OpenOptions},
     path::PathBuf,
 };
-use crate::utils::Config;
 
 pub fn read() -> Result<(BTreeMap<String, Todo>, u64), Box<dyn Error>> {
     let mut file = open()?;
@@ -18,11 +18,7 @@ pub fn read() -> Result<(BTreeMap<String, Todo>, u64), Box<dyn Error>> {
     file.read_to_string(&mut string)?;
     let toml_data: TomlData = from_str(&string)?;
 
-    Ok((
-        toml_data
-            .todos,
-        toml_data.config.id,
-    ))
+    Ok((toml_data.todos, toml_data.config.id))
 }
 
 pub fn write(todos: BTreeMap<String, Todo>, config: Config) -> Result<(), Box<dyn Error>> {
@@ -32,7 +28,6 @@ pub fn write(todos: BTreeMap<String, Todo>, config: Config) -> Result<(), Box<dy
     file.write_all(toml_string.as_bytes())?;
     Ok(())
 }
-
 
 pub fn open() -> Result<File, Box<dyn Error>> {
     let mut path: PathBuf = match cache_dir() {

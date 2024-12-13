@@ -7,6 +7,7 @@ use todo::{
     file::{read, write},
 };
 
+use crate::utils::get_id;
 use clap::Parser;
 use dirs::cache_dir;
 use std::error::Error;
@@ -18,15 +19,14 @@ mod args;
 mod data;
 mod file;
 mod tasks;
-mod utils;
 mod traits;
+mod utils;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let (mut todos, mut id) = read()?;
-
     let args = Args::parse();
 
-    let todo: Todo;
+    let mut todo: Todo;
 
     match args.subcommand {
         SubCommand::Clean => {
@@ -57,7 +57,15 @@ fn main() -> Result<(), Box<dyn Error>> {
             write(todos_valid, Config { id })?;
         }
         SubCommand::Edit => {
-            unimplemented!()
+            let todo_id = get_id(args.title, &todos)?;
+            for (id, todo) in &mut todos {
+                if id == &todo_id {
+                    let temp_time = todo.time.clone();
+                    *todo = Todo::create(Some(todo.title.clone()), None, None, 0)?.0;
+                    todo.time = temp_time.to_string();
+                }
+            }
+            write(todos, Config { id })?;
         }
         SubCommand::Rm => {
             unimplemented!()
@@ -86,4 +94,3 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     Ok(())
 }
-

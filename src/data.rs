@@ -1,14 +1,11 @@
 use crate::data::Priority::{High, Low, Medium, VeryHigh, VeryLow};
+use crate::utils;
 use chrono::Local;
 use clap::ValueEnum;
 use crossterm::style::Color;
 use crossterm::style::Stylize;
 use serde::{Deserialize, Serialize};
-use std::{
-    error::Error,
-    fmt::Debug,
-};
-use crate::utils;
+use std::{error::Error, fmt::Debug};
 
 #[derive(Deserialize, Serialize)]
 pub struct Todo {
@@ -92,4 +89,3 @@ pub enum Priority {
     Low,
     VeryLow,
 }
-

@@ -1,10 +1,16 @@
+use crate::data::Priority;
 use clap::{Parser, ValueEnum};
 #[allow(unused_imports)]
 use SubCommand::*;
-use crate::data::Priority;
 
 #[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = "Todo list app", arg_required_else_help = true)]
+#[clap(
+    author,
+    version,
+    about,
+    long_about = "Todo list app",
+    arg_required_else_help = true
+)]
 pub struct Args {
     #[clap(value_enum)]
     /// Action to perform
@@ -17,7 +23,7 @@ pub struct Args {
     pub description: Option<String>,
 
     #[clap(value_enum)]
-    pub priority: Option<Priority>
+    pub priority: Option<Priority>,
 }
 
 #[derive(ValueEnum, Debug, Clone, PartialEq)]
@@ -43,4 +49,3 @@ pub enum SubCommand {
     /// Clean the to-do database (will prompt with confirmation)
     Clean,
 }
-

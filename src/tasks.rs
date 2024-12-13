@@ -1,9 +1,9 @@
+use crate::args::Args;
+use crate::data::Todo;
+use crate::utils;
+use crossterm::style::Stylize;
 use std::collections::BTreeMap;
 use std::error::Error;
-use crossterm::style::Stylize;
-use crate::args::Args;
-use crate::utils;
-use crate::data::Todo;
 
 pub fn mark_task(
     completed: bool,
