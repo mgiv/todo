@@ -37,7 +37,7 @@ pub fn get_id(
     } else {
         return Ok(todos
             .iter()
-            .find(|(k, v)| v.title == *title.as_ref().unwrap())
+            .find(|(_k, v)| v.title == *title.as_ref().unwrap())
             .ok_or("Todo not found")?
             .0
             .clone());

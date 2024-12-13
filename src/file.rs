@@ -21,7 +21,7 @@ pub fn read() -> Result<(BTreeMap<String, Todo>, u64), Box<dyn Error>> {
     Ok((toml_data.todos, toml_data.config.id))
 }
 
-pub fn write(todos: BTreeMap<String, Todo>, config: Config) -> Result<(), Box<dyn Error>> {
+pub fn write(mut todos: BTreeMap<String, Todo>, config: Config) -> Result<(), Box<dyn Error>> {
     let toml = TomlData { config, todos };
     let toml_string = toml::to_string(&toml)?;
     let mut file = open()?;

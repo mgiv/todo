@@ -5,6 +5,7 @@ use todo::{
     args::{Args, SubCommand},
     data::Todo,
     file::{read, write},
+    utils::get_input
 };
 
 use crate::utils::get_id;
@@ -23,10 +24,14 @@ mod traits;
 mod utils;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let (mut todos, mut id) = read()?;
     let args = Args::parse();
-
-    let mut todo: Todo;
+    let (mut todos, mut id);
+    if args.subcommand == SubCommand::Clean {
+        (todos, id) = (BTreeMap::new(), 0)
+    } else {
+        (todos, id) = read()?;
+    }
+    let todo: Todo;
 
     match args.subcommand {
         SubCommand::Clean => {
@@ -68,7 +73,21 @@ fn main() -> Result<(), Box<dyn Error>> {
             write(todos, Config { id })?;
         }
         SubCommand::Rm => {
-            unimplemented!()
+            let todo_id = get_id(args.title, &todos)?;
+            let mut todo_to_delete: Option<String> = None;
+            for (id, todo) in  &todos {
+                if id == &todo_id {
+                    if get_input(&format!("Deleting: {}\nConfirm (y/N): ", todo.title).to_string())?.to_lowercase() == "y"{
+                        todo_to_delete = Some(id.clone());
+                        break;
+                    }
+                }
+            }
+            if todo_to_delete.is_some() {
+                todos.remove::<String>(&todo_to_delete.unwrap());
+                write(todos, Config { id })?;
+                println!("Todo deleted")
+            };
         }
         SubCommand::Done => {
             mark_task(true, &mut todos, &args)?;
